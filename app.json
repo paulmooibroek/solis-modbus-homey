@@ -1,0 +1,291 @@
+{
+  "id": "nl.paul.solis-modbus",
+  "version": "1.3.0",
+  "compatibility": ">=12.13.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Solis Modbus",
+    "nl": "Solis Modbus"
+  },
+  "description": {
+    "en": "Read solar production locally via a Waveshare gateway",
+    "nl": "Lees zonneproductie lokaal via een Waveshare-gateway"
+  },
+  "category": [
+    "energy"
+  ],
+  "permissions": [],
+  "author": {
+    "name": "Paul"
+  },
+  "brandColor": "#F28C28",
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "drivers": [
+    {
+      "id": "solis-mini",
+      "name": {
+        "en": "Solis Mini 3600 4G",
+        "nl": "Solis Mini 3600 4G"
+      },
+      "class": "solarpanel",
+      "connectivity": [
+        "lan"
+      ],
+      "capabilities": [
+        "onoff",
+        "measure_power",
+        "meter_power",
+        "meter_power.today",
+        "solar_limit",
+        "target_power",
+        "measure_voltage",
+        "measure_temperature",
+        "solis_status",
+        "solis_status_code"
+      ],
+      "capabilitiesOptions": {
+        "meter_power.today": {
+          "title": {
+            "en": "Yield today",
+            "nl": "Opbrengst vandaag"
+          },
+          "decimals": 1,
+          "preventInsights": false
+        },
+        "target_power": {
+          "min": 0,
+          "max": 3600,
+          "step": 36
+        },
+        "solar_limit": {
+          "preventInsights": false,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        "measure_voltage": {
+          "preventInsights": false,
+          "title": {
+            "en": "Grid voltage",
+            "nl": "Netspanning"
+          }
+        },
+        "measure_temperature": {
+          "preventInsights": false,
+          "title": {
+            "en": "Inverter temperature",
+            "nl": "Omvormertemperatuur"
+          }
+        },
+        "solis_status_code": {
+          "preventInsights": false
+        },
+        "onoff": {
+          "title": {
+            "en": "Solar production",
+            "nl": "Zonneproductie"
+          }
+        }
+      },
+      "energy": {
+        "meterPowerExportedCapability": "meter_power"
+      },
+      "images": {
+        "small": "/drivers/solis-mini/assets/images/small.png",
+        "large": "/drivers/solis-mini/assets/images/large.png",
+        "xlarge": "/drivers/solis-mini/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "connect"
+        }
+      ],
+      "settings": [
+        {
+          "id": "host",
+          "type": "text",
+          "label": {
+            "en": "IP-adres / hostnaam",
+            "nl": "IP-adres / hostnaam"
+          },
+          "value": ""
+        },
+        {
+          "id": "port",
+          "type": "number",
+          "label": {
+            "en": "TCP-poort",
+            "nl": "TCP-poort"
+          },
+          "value": 502,
+          "min": 1,
+          "max": 65535,
+          "step": 1
+        },
+        {
+          "id": "unit_id",
+          "type": "number",
+          "label": {
+            "en": "Solis slave-ID",
+            "nl": "Solis slave-ID"
+          },
+          "value": 1,
+          "min": 1,
+          "max": 247,
+          "step": 1
+        },
+        {
+          "id": "protocol",
+          "type": "dropdown",
+          "label": {
+            "en": "Protocol",
+            "nl": "Protocol"
+          },
+          "value": "tcp",
+          "values": [
+            {
+              "id": "tcp",
+              "label": {
+                "en": "Modbus TCP",
+                "nl": "Modbus TCP"
+              }
+            },
+            {
+              "id": "rtu",
+              "label": {
+                "en": "RTU over TCP",
+                "nl": "RTU over TCP"
+              }
+            }
+          ]
+        },
+        {
+          "id": "poll_interval",
+          "type": "number",
+          "label": {
+            "en": "Meetinterval (seconden)",
+            "nl": "Meetinterval (seconden)"
+          },
+          "value": 30,
+          "min": 5,
+          "max": 3600,
+          "step": 1
+        },
+        {
+          "id": "timeout",
+          "type": "number",
+          "label": {
+            "en": "Timeout (seconden)",
+            "nl": "Timeout (seconden)"
+          },
+          "value": 5,
+          "min": 1,
+          "max": 30,
+          "step": 1
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "solar_limit": {
+      "type": "number",
+      "title": {
+        "en": "Production limit (0\u2013100%)",
+        "nl": "Productielimiet (0\u2013100%)"
+      },
+      "units": {
+        "en": "%",
+        "nl": "%"
+      },
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "decimals": 2,
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
+    "solis_status": {
+      "type": "string",
+      "title": {
+        "en": "Omvormerstatus",
+        "nl": "Omvormerstatus"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/icon.svg",
+      "insights": false
+    },
+    "solis_status_code": {
+      "type": "number",
+      "title": {
+        "en": "Omvormerstatuscode",
+        "nl": "Omvormerstatuscode"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/icon.svg",
+      "insights": true,
+      "min": 0,
+      "max": 65534,
+      "decimals": 0,
+      "chartType": "stepLine"
+    }
+  },
+  "flow": {
+    "actions": [
+      {
+        "id": "set_solar_limit",
+        "title": {
+          "en": "Limit solar production to",
+          "nl": "Begrens zonneproductie tot"
+        },
+        "titleFormatted": {
+          "en": "Limit solar production to [[percent]]%",
+          "nl": "Begrens zonneproductie tot [[percent]]%"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=solis-mini"
+          },
+          {
+            "name": "percent",
+            "type": "range",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "value": 100,
+            "label": "%"
+          }
+        ]
+      },
+      {
+        "id": "stop_solar",
+        "title": {
+          "en": "Stop solar production (0%)",
+          "nl": "Stop zonneproductie (0%)"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=solis-mini"
+          }
+        ]
+      }
+    ]
+  }
+}

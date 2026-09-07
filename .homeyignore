@@ -1,0 +1,9 @@
+test/
+scripts/
+.git/
+
+# Local diagnostics and credentials
+reports/
+.env
+.env.*
+*.log

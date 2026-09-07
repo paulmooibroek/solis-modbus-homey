@@ -1,0 +1,15 @@
+{
+  "name": "nl.paul.solis-modbus",
+  "version": "1.3.0",
+  "private": true,
+  "description": "Solis Mini 4G via Waveshare Modbus voor Homey",
+  "main": "app.js",
+  "scripts": {
+    "test": "node --test",
+    "validate": "homey app validate --level debug",
+    "probe": "node scripts/probe.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

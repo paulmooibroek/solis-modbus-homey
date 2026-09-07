@@ -1,0 +1,10 @@
+node_modules/
+.homeybuild/
+*.tgz
+.DS_Store
+
+# Local diagnostics and credentials
+reports/
+.env
+.env.*
+*.log
