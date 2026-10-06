@@ -1,6 +1,21 @@
 # Solis Modbus voor Homey
 
-Homey SDK 3-app voor een **Solis-mini-3600-4G**, lokaal uitgelezen via een **Waveshare RS485 TO POE ETH (B)**. Vereist een Homey met ondersteuning voor lokale apps (Homey Pro), software ≥12.13.0. Geen SolisCloud-account nodig.
+Homey SDK 3-app voor **eenfasige Solis Mini 4G- en 1P 4G-omvormers**, lokaal uitgelezen via een **Waveshare RS485 TO POE ETH (B)**. Vereist een Homey met ondersteuning voor lokale apps (Homey Pro), software ≥12.13.0. Geen SolisCloud-account nodig.
+
+## Model kiezen (versie 1.4.0)
+
+Selecteer in de setup het exacte model van het typeplaatje:
+
+- Mini 4G: 700, 1000, 1500, 2000, 2500, 3000 en 3600 W.
+- 1P 4G (Europese reeks): 2.5K, 3K, 3.6K, 4K, 4.6K, 5K en 6K.
+
+Het nominale AC-vermogen volgt uit de modelkeuze. Bijvoorbeeld: 50% is 1800 W bij de Mini 3600, maar 3000 W bij de 1P6K. Gebruik niet het totale paneelvermogen. De maximale wattinstelling, 0–100%-regeling en controle op onwaarschijnlijke meetwaarden volgen hetzelfde model.
+
+Deze modellen gebruiken het korte Solis 3000-registerprofiel. De setup controleert de eenfasige uitgangsconfiguratie en leest productiegegevens voordat het apparaat wordt toegevoegd. Dit is geen automatische herkenning van het exacte model: controleer zelf het typeplaatje. Driefasige, hybride, US-, 5G-, S5- en S6-modellen zijn niet opgenomen; kies daarvoor niet een gelijkend 4G-model.
+
+Bestaande apparaten zonder modelinstelling blijven Mini 3600 4G; apparaat-ID, instellingen en historie blijven behouden. Het model is naderhand aanpasbaar via de apparaatinstellingen. Daarbij wordt opnieuw verbinding getest (dus bij voorkeur overdag), zonder instellingen naar de omvormer te schrijven. Nieuwe modellen zijn getest met gesimuleerde Modbus-antwoorden, nog niet op fysieke hardware. De fysieke praktijktest uit eerdere versies betreft alleen de Mini 3600 4G.
+
+Bronnen: [Solis-protocol §5.3 en §5.6](https://api.library.loxone.com/downloader/file/1197/RS485_MODBUS%20Communication%20Protocol_Solis%20Inverters.pdf), [1P 4G-fabrikantdatasheet](https://www.clenergytech.com/products/grid-tide-inverters/solis/single-phase-inverters/download/data_sheet.pdf).
 
 ## Meetwaarden
 
@@ -21,12 +36,12 @@ De extra uitlezing gebruikt FC04 draadadres 3035, lengte 9: documentregister 303
 ## Zonneproductie bedienen (versie 1.3.0)
 
 - **Zonneproductie uit:** zet de productiegrens op **0%**.
-- **Zonneproductie aan:** zet de productiegrens op **100%** (3600 W nominaal).
-- **Productielimiet (0–100%):** stel een tussenliggend percentage in; 50% is 1800 W.
+- **Zonneproductie aan:** zet de productiegrens op **100%** (het nominale vermogen van het gekozen model).
+- **Productielimiet (0–100%):** stel een tussenliggend percentage in; 50% is 1800 W bij de Mini 3600.
 
 De aan/uit-schakelaar geeft aan of de limiet productie toestaat. Hij geeft niet aan of er op dat moment daadwerkelijk zon of productie is. Daarvoor blijft de vermogensmeting beschikbaar. Aan herstelt altijd 100%, niet het vorige percentage.
 
-De bestaande Flow-acties voor procentregeling en stoppen blijven werken. Homey's doelvermogen blijft beschikbaar met bereik 0–3600 W. Oude opdrachten boven 100% / 3600 W worden afgewezen. Bestaande apparaten krijgen de schakelaar en de nieuwe grenzen automatisch, zonder verwijdering van historie.
+De bestaande Flow-acties voor procentregeling en stoppen blijven werken. Homey's doelvermogen blijft beschikbaar met bereik 0–het nominale modelvermogen. Oude opdrachten boven 100% / het nominale modelvermogen worden afgewezen. Bestaande apparaten krijgen de schakelaar en de nieuwe grenzen automatisch, zonder verwijdering van historie.
 
 De regeling gebruikt nu het procentregister **3052** (draadadres **3051**), waarbij 10000 gelijk is aan 100%. De regelschakelaar is register 3070 (draadadres 3069). Het eerder gebruikte wattregister 3081 wordt niet meer gebruikt. Elke opdracht wordt bevestigd met een teruglezing van de schakelaar en het percentage.
 
@@ -50,6 +65,8 @@ PoE voedt de Waveshare. De RS485-instellingen worden in de gateway ingesteld, ni
 
 ## Installeren
 
+Op een Mac met geïnstalleerde Homey CLI kun je dubbelklikken op **Installeren.command**. Dit werkt ook voor upgrades en behoudt bestaande instellingen. Het lokale script is niet Apple Developer ID-ondertekend of genotariseerd; dit is geen ondertekende macOS-app. Vereisten: Node.js, Homey CLI en een aangemelde/geselecteerde Homey. Onderstaande terminalstappen zijn alleen nodig voor de eerste inrichting of als alternatief.
+
 Open een terminal in deze projectmap. Installeer zo nodig de Homey CLI met `npm install -g homey`. Log in en selecteer je Homey:
 
 ```sh
@@ -60,7 +77,7 @@ homey app install
 
 Er zijn geen externe runtime-afhankelijkheden. Voor tijdelijk ontwikkelen met loguitvoer kan `homey app run` worden gebruikt (afhankelijk van je Homey-model is Docker vereist).
 
-Ga daarna in Homey naar **Apparaten → + → Solis Modbus → Solis Mini 3600 4G**. Vul IP, poort, slave-ID en protocol in. De app leest de omvormer voordat het apparaat wordt aangemaakt. Voeg bij voorkeur overdag toe, wanneer de omvormer actief is.
+Ga daarna in Homey naar **Apparaten → + → Solis Modbus → Solis eenfasig 4G**. Kies je model en vul IP, poort, slave-ID en protocol in. De app leest de omvormer voordat het apparaat wordt aangemaakt. Voeg bij voorkeur overdag toe, wanneer de omvormer actief is.
 
 In de geavanceerde apparaatinstellingen zijn het meetinterval (standaard 30 seconden) en de timeout (5 seconden) aanpasbaar. Nieuwe instellingen worden bij de volgende lezing gebruikt. Een lopende lezing kan nog de vorige instellingen gebruiken. Het interval begint na het afronden van de vorige lezing, zodat lezingen niet overlappen.
 

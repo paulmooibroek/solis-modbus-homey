@@ -61,3 +61,9 @@ test('observed Mini 4G startup mode 0 and existing 110% are migrated by explicit
 test('reject values above 100% before writes',async t=>{
  const x=await inverter(t);assert.throws(()=>setPower(x.config,3960),/3600/);assert.deepEqual(x.writes,[]);
 });
+
+test('6kW writes 50% as 5000 and reads it back as 3000 W',async t=>{
+ const x=await inverter(t);x.config.model='1p-6000-4g';
+ assert.deepEqual(await setPower(x.config,3000),{enabled:true,watts:3000});
+ assert.deepEqual(x.writes,[[3069,0xaa],[3051,5000]]);
+});

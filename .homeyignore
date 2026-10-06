@@ -7,3 +7,5 @@ reports/
 .env
 .env.*
 *.log
+
+Installeren.command

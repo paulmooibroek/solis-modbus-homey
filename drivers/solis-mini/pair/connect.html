@@ -1,22 +1,35 @@
 <form id="connect" class="homey-form">
   <h1 class="homey-title">Solis via Waveshare</h1>
   <p class="homey-subtitle">Vul de lokale gatewaygegevens in. De verbinding wordt vóór het toevoegen getest.</p>
+  <div class="homey-form-group"><label class="homey-form-label" for="model">Solis-model (typeplaatje)</label><select class="homey-form-select" id="model" required disabled></select></div>
+  <p>Voor eenfasige Mini 4G en 1P 4G. Kies het exacte nominale AC-vermogen, niet het paneelvermogen. Hybride, driefasige en US-modellen worden niet ondersteund.</p>
   <div class="homey-form-group"><label class="homey-form-label" for="host">IP-adres / hostnaam</label><input class="homey-form-input" id="host" placeholder="192.168.1.100" required></div>
   <div class="homey-form-group"><label class="homey-form-label" for="port">TCP-poort</label><input class="homey-form-input" id="port" type="number" min="1" max="65535" value="502" required></div>
   <div class="homey-form-group"><label class="homey-form-label" for="unit">Solis slave-ID</label><input class="homey-form-input" id="unit" type="number" min="1" max="247" value="1" required></div>
   <div class="homey-form-group"><label class="homey-form-label" for="protocol">Waveshare-protocol</label><select class="homey-form-select" id="protocol"><option value="tcp">Modbus TCP (gateway zet om naar RTU)</option><option value="rtu">RTU over TCP (transparante gateway)</option></select></div>
   <p>RS485: 9600 baud, 8 databits, geen pariteit, 1 stopbit. Het slave-ID moet overeenkomen met de omvormer.</p>
-  <button class="homey-button-primary-full" id="submit" type="submit">Testen en toevoegen</button>
+  <button class="homey-button-primary-full" id="submit" type="submit" disabled>Testen en toevoegen</button>
   <p id="status" role="status" aria-live="polite"></p>
 </form>
 <script>
 Homey.setTitle('Solis verbinden');
+Homey.emit('models').then(models => {
+  const select = document.getElementById('model');
+  for (const model of models) {
+    const option = document.createElement('option');
+    option.value = model.id; option.textContent = `${model.name} — ${model.watts} W`;
+    select.appendChild(option);
+  }
+  select.value = 'mini-3600-4g'; select.disabled = false;
+  document.getElementById('submit').disabled = false;
+}).catch(err => { document.getElementById('status').textContent = err.message || String(err); });
 document.getElementById('connect').addEventListener('submit', async event => {
   event.preventDefault();
   const button = document.getElementById('submit'), status = document.getElementById('status');
   button.disabled = true; status.textContent = 'Omvormer uitlezen…';
   try {
     const device = await Homey.emit('connect', {
+      model: document.getElementById('model').value,
       host: document.getElementById('host').value,
       port: Number(document.getElementById('port').value),
       unit_id: Number(document.getElementById('unit').value),

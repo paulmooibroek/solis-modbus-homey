@@ -1,9 +1,10 @@
 'use strict';
 const Homey = require('homey');
 const { settings } = require('../../lib/modbus');
-const { readSolis } = require('../../lib/solis');
+const { readSolis, verifyProfile } = require('../../lib/solis');
 const { readDiagnostics } = require('../../lib/diagnostics');
 const { percentToWatts, readControl, setPower } = require('../../lib/control');
+const { getModel } = require('../../lib/models');
 module.exports = class SolisDevice extends Homey.Device {
   async onInit() {
     this.stopped = false;
@@ -18,7 +19,7 @@ module.exports = class SolisDevice extends Homey.Device {
       await this.setCapabilityOptions(cap, { ...this.getCapabilityOptions(cap), preventInsights: false });
     }
     await this.setCapabilityOptions('solar_limit', { ...this.getCapabilityOptions('solar_limit'), min: 0, max: 100, step: 1 });
-    await this.setCapabilityOptions('target_power', { ...this.getCapabilityOptions('target_power'), min: 0, max: 3600, step: 36 });
+    await this.setCapabilityOptions('target_power', { ...this.getCapabilityOptions('target_power'), min: 0, max: getModel(this.config).watts, step: getModel(this.config).watts / 100 });
     await this.setCapabilityOptions('onoff', { title: { en: 'Solar production', nl: 'Zonneproductie' } });
     this.registerCapabilityListener('onoff', on => this.setSolarLimit(on ? 100 : 0));
     this.diagnosticWarning = null;
@@ -35,15 +36,16 @@ module.exports = class SolisDevice extends Homey.Device {
     return operation;
   }
   async updateControl(state) {
-    const known = Number.isFinite(state.watts) && state.watts >= 0 && state.watts <= 3600;
-    await this.setCapabilityValue('solar_limit', known ? Math.round(state.watts / 36 * 100) / 100 : null);
+    const known = Number.isFinite(state.watts) && state.watts >= 0 && state.watts <= getModel(this.config).watts;
+    await this.setCapabilityValue('solar_limit', known ? Math.round(state.watts / getModel(this.config).watts * 10000) / 100 : null);
     await this.setCapabilityValue('target_power', known ? state.watts : null);
     await this.setCapabilityValue('onoff', known ? state.watts > 0 : null);
   }
-  setSolarLimit(percent) { return this.applyPower(percentToWatts(percent)); }
-  applyPower(watts) {
+  setSolarLimit(percent) { return this.applyPower(percent, true); }
+  applyPower(input, isPercent = false) {
     return this.enqueue(async () => {
       try {
+        const watts = isPercent ? percentToWatts(input, this.config) : input;
         const actual = await setPower(this.config, watts, this.lifetime.signal);
         await this.updateControl(actual);
         await this.refreshWarning();
@@ -102,7 +104,16 @@ module.exports = class SolisDevice extends Homey.Device {
   }
   async onSettings({ newSettings }) {
     const next = settings(newSettings);
-    await this.enqueue(async () => { this.config = next; });
+    await this.enqueue(async () => {
+      const old = this.config;
+      const changed = ['model', 'host', 'port', 'unit_id', 'protocol'].some(key => next[key] !== old[key]);
+      if (changed) await verifyProfile(next, this.lifetime.signal);
+      await this.setCapabilityOptions('target_power', {
+        ...this.getCapabilityOptions('target_power'), max: getModel(next).watts, step: getModel(next).watts / 100,
+      });
+      this.config = next;
+      if (changed) await this.updateControl({});
+    });
   }
   async onDeleted() { this.stop(); }
   async onUninit() { this.stop(); }

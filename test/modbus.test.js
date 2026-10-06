@@ -87,3 +87,12 @@ test('invalid diagnostics do not create graph spikes or false normal state',()=>
   b.writeUInt16BE(0,16);assert.equal(decodeDiagnostics(b).solis_status,'Wachten (0x0000)');
   assert.throws(()=>decodeDiagnostics(Buffer.alloc(2)));
 });
+
+const { verifyProfile } = require('../lib/solis');
+for (const outputType of [0,1,2,65535]) test(`profile check output type ${outputType}`,async t=>{
+ const s=await gateway(t,(socket,q)=>{
+   assert.equal(q[7],4);assert.equal(q.readUInt16BE(8),3002);assert.equal(q.readUInt16BE(10),1);
+   const b=Buffer.alloc(2);b.writeUInt16BE(outputType);socket.end(response(q,b));
+ });
+ if(outputType===0)await verifyProfile(s);else await assert.rejects(verifyProfile(s),/eenfasige/);
+});
